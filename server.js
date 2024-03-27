@@ -89,7 +89,8 @@ io.on('connection', (socket) => {
   const connectHost = socket.handshake.headers.host;
   const pathPrefix = socket.handshake.headers['path-prefix'];
   setTunnelSocket(connectHost, pathPrefix, socket);
-
+  console.log(`client connected at ${connectHost}, path prefix: ${pathPrefix}`);
+  
   const disconnectTimeout = timeout ?  setTimeout(() =>  socket.disconnect() , timeout) : null
 
   const onMessage = (message) => {
