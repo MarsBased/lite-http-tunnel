@@ -16,6 +16,8 @@ const io = new Server(httpServer, {
   path: webTunnelPath,
 });
 
+const TIMEOUT_IN_SECONDS = Number(process.env.TIMEOUT_IN_SECONDS) 
+const timeout = isNaN(TIMEOUT_IN_SECONDS) ? null: TIMEOUT_IN_SECONDS * 1000
 let tunnelSockets = [];
 
 function getTunnelSocket(host, pathPrefix) {
@@ -87,7 +89,9 @@ io.on('connection', (socket) => {
   const connectHost = socket.handshake.headers.host;
   const pathPrefix = socket.handshake.headers['path-prefix'];
   setTunnelSocket(connectHost, pathPrefix, socket);
-  console.log(`client connected at ${connectHost}, path prefix: ${pathPrefix}`);
+
+  const disconnectTimeout = timeout ?  setTimeout(() =>  socket.disconnect() , timeout) : null
+
   const onMessage = (message) => {
     if (message === 'ping') {
       socket.send('pong');
@@ -97,6 +101,9 @@ io.on('connection', (socket) => {
     console.log('client disconnected: ', reason);
     removeTunnelSocket(connectHost, pathPrefix);
     socket.off('message', onMessage);
+    if (disconnectTimeout) {
+      clearTimeout(disconnectTimeout);
+    }
   };
   socket.on('message', onMessage);
   socket.once('disconnect', onDisconnect);
@@ -116,6 +123,24 @@ app.get('/tunnel_jwt_generator', (req, res) => {
     const jwtToken = jwt.sign({ token: process.env.VERIFY_TOKEN }, process.env.SECRET_KEY);
     res.status(200);
     res.send(jwtToken);
+    return;
+  }
+  res.status(401);
+  res.send('Forbidden');
+});
+
+app.get('/hosts', (req, res) => {
+  if (!process.env.ADMIN_TOKEN) {
+    res.status(404);
+    res.send('Not found');
+    return;
+  }
+  if (
+    req.query.adminToken === process.env.ADMIN_TOKEN
+  ) {
+    const hosts = tunnelSockets.map((socket) => socket.host)
+    res.status(200);
+    res.send(hosts);
     return;
   }
   res.status(401);
