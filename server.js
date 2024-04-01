@@ -169,8 +169,7 @@ function getReqHeaders(req) {
 app.use('/', (req, res) => {
   const tunnelSocket = getAvailableTunnelSocket(req.headers.host, req.url);
   if (!tunnelSocket) {
-    res.status(404);
-    res.send('Not Found');
+    res.redirect(process.env.NOT_FOUND_REDIRECT_URL)
     return;
   }
   const requestId = uuidV4();
