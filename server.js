@@ -148,6 +148,25 @@ app.get('/hosts', (req, res) => {
   res.send('Forbidden');
 });
 
+app.get('/checkHost', (req, res) => {
+    if (!process.env.ADMIN_TOKEN) {
+        res.status(404);
+        res.send('Not found');
+        return;
+    }
+    if (req.query.adminToken === process.env.ADMIN_TOKEN) {
+        const hostToCheck = req.query.host;
+        const hostExists = tunnelSockets.some(
+            (socket) => socket.host === hostToCheck
+        );
+        res.status(200);
+        res.send(hostExists);
+        return;
+    }
+    res.status(401);
+    res.send('Forbidden');
+});
+
 function getReqHeaders(req) {
   const encrypted = !!(req.isSpdy || req.connection.encrypted || req.connection.pair);
   const headers = { ...req.headers };
