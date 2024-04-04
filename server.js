@@ -157,7 +157,7 @@ app.get('/checkHost', (req, res) => {
     if (req.query.adminToken === process.env.ADMIN_TOKEN) {
         const hostToCheck = req.query.host;
         const hostExists = tunnelSockets.some(
-            (socket) => socket.host === hostToCheck
+            (socket) => hostToCheck.includes(socket.host)
         );
         res.status(200);
         res.send(hostExists);
