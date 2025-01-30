@@ -16,7 +16,7 @@ const io = new Server(httpServer, {
   path: webTunnelPath,
 });
 
-const TIMEOUT_IN_SECONDS = Number(process.env.TIMEOUT_IN_SECONDS) 
+const TIMEOUT_IN_SECONDS = Number(process.env.TIMEOUT_IN_SECONDS)
 const timeout = isNaN(TIMEOUT_IN_SECONDS) ? null: TIMEOUT_IN_SECONDS * 1000
 let tunnelSockets = [];
 
@@ -234,8 +234,9 @@ app.use('/', (req, res) => {
   tunnelResponse.once('response', onResponse);
   tunnelResponse.pipe(res);
   const onSocketError = () => {
+    console.log('Disconnect error');
     res.off('close', onResClose);
-    res.end(500);
+    res.end('Internal Server Error');
   };
   const onResClose = () => {
     tunnelSocket.off('disconnect', onSocketError);
